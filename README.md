@@ -34,7 +34,7 @@ backend/
 ### Setup
 
 ##### 1. Clone the repository:
-    git clone https://github.com/ErblinZeqiri/subtrack-backend.git
+    git clone https://github.com/ErblinZeqiri/SubTrack_Backend.git
 
 ##### 2. Install dependencies:
 
