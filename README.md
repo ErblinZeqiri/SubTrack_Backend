@@ -20,7 +20,7 @@ This repository contains the backend code for the **Subtrack** application, a su
 ## Project Structure
 
 ```bash
-backend/
+SubTrack_Backend/
 │
 ├── config/          # Configuration files for the application
 ├── controllers/     # API route controllers for users and subscriptions
