@@ -71,7 +71,9 @@ class SubscriptionController(MethodView):
         print(user_id)
         try:
             subscriptions = subscription_service.get_all(user_id)
-            return jsonify(subscriptions), 200
+            
+            subscriptions_dict = [subscription_mapper.to_dict(sub) for sub in subscriptions]
+            return jsonify(subscriptions_dict), 200
         except ValueError as e:
             return jsonify({"message": str(e)}), 404
 
