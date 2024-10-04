@@ -60,3 +60,6 @@ class SubscriptionService:
 
   def update_subscription(self, subscription: Subscription) -> Subscription:
     return self.repository.update_subscription(subscription)
+
+  def delete_subscription(self, subscription_id: str) -> None:
+    self.repository.delete_subscription(subscription_id)

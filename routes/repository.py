@@ -84,5 +84,8 @@ class SubscriptionRepository:
     return subscription
 
   def update_subscription(self, subscription: Subscription) -> Subscription:
-    self.collection.document(subscription.uid).set(self.mapper.to_firestore_dict(subscription))
+    self.collection.document(subscription.id).set(self.mapper.to_firestore_dict(subscription))
     return subscription
+  
+  def delete_subscription(self, subscription_id: str) -> None:
+    self.collection.document(subscription_id).delete()
