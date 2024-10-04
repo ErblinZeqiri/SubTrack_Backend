@@ -83,7 +83,7 @@ class SubscriptionController(MethodView):
     @authenticated
     def post(self, subscription: dict):
         try:
-            subscription["user_uid"] = g.user_uid,
-            return subscription_mapper.to_dict(subscription_service.create_subscription(subscription_mapper.to_subscription(subscription)))
+            subscription["user_uid"] = g.user_uid
+            return subscription_mapper.to_dict(subscription_service.create_subscription(subscription_mapper.to_subscription(subscription))), 201
         except ValueError as e:
             return {"message": str(e)}, 422
