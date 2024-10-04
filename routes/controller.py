@@ -27,11 +27,6 @@ user_mapper = UserMapper()
 @users.route("/")
 @authenticated
 class UserController(MethodView):
-  # @users.doc(description="Retrieve a list of all the users of the system")
-  # @users.response(status_code=200, schema=UserResponseList, description="Return the list of all the users user")
-  # def get(self):
-  #   return { "users": user_service.get_all() }
-
   @users.arguments(CreateUserRequest)
   @users.response(status_code=201, schema=UserResponse)
   @users.response(status_code=422)
@@ -43,35 +38,22 @@ class UserController(MethodView):
     
 
 login = Blueprint("login", "login", url_prefix="/login", description="login routes")
-
 @login.route("/", methods=["POST"])
 @login.arguments(LoginRequest)
 @login.response(status_code=200, schema=LoginResponse)
-@login.response(status_code=401)
 def login_with_email(login_request: LoginRequest):
     email = login_request['email']
     password = login_request['password']
     user = user_service.login(email, password)
-    if not user:
-      return {"message": "Invalid credentials"}, 401
-    # Login logic here
     token = create_token(user.uid)
     return {"token": token}
+  
 
-  
-# @users.route("/<uid>")
-# class SpecificUserController(MethodView):
-#   @users.doc(description="Retrieve a specific user given the uid")
-#   @users.response(status_code=200, schema=UserResponse, description="Return the specific user")
-#   def get(self, uid):
-#     return user_service.get_one(uid)
-
-#   def put(self, uid):
-#     return f"hello put users with uid {uid}"
-  
-#   def delete(self, uid):
-#     return f"hello delete users with uid {uid}"
-  
+logout = Blueprint("logout", "logout", url_prefix="/logout", description="logout routes")
+@logout.route("/", methods=["POST"])
+@authenticated
+def logout():
+    return {"message": "User logged out"}, 200
 
 # # # Subscriptions # # #
 subscriptions = Blueprint("subscriptions", "subscriptions", url_prefix="/subscriptions", description="Subscriptions routes")
@@ -103,17 +85,3 @@ class SubscriptionController(MethodView):
             return subscription_mapper.to_dict(subscription_service.create_subscription(subscription_mapper.to_subscription(subscription)))
         except ValueError as e:
             return {"message": str(e)}, 422
-
-    # @subscriptions.route("/<id>")
-    # @subscriptions.doc(description="Retrieve a specific subscription given the id")
-    # @subscriptions.response(status_code=200, schema=SubscriptionResponse, description="Return the specific subscription")
-    # def get(self, id):
-    #     return subscription_service.get_one(id)
-
-    # def put(self, id):
-    #     return f"hello put subscriptions with uid {id}"
-
-    # def delete(self, id):
-    #     return f"hello delete subscriptions with uid {id}"
-    
-# subscriptions.add_url_rule('/', view_func=SubscriptionController.as_view('subscription_controller'))

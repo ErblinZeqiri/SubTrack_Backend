@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_smorest import Api
-
+from flask_cors import CORS
 
 from routes.controller import users, subscriptions, login
 
@@ -16,6 +16,7 @@ class APIConfig:
 
 server.config.from_object(APIConfig)
 
+CORS(server, origins="*", supports_credentials=True, resources=r'/*')
 api = Api(server)
 api.register_blueprint(users)
 api.register_blueprint(subscriptions)
