@@ -10,10 +10,7 @@ class UserService:
   def __init__(self) -> None:
     self.repository = UserRepository()
     self.mapper = UserMapper()
-
-  def get_all(self) -> list[User]:
-    return self.repository.get_all()
-  
+      
   def get_one(self, user_uid: str) -> User:
     return self.repository.get_one(user_uid)
   

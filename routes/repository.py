@@ -16,15 +16,6 @@ class UserRepository:
   def __init__(self) -> None:
     self.collection = db.collection(u"users")
     self.mapper = UserMapper()
-
-  def get_all(self) -> list[User]:
-    users = []
-    for user in self.collection.get():
-      user_data = user.to_dict()
-      user_obj = self.mapper.to_user(user_data)
-      users.append(self.mapper.to_dict(user_obj))
-    print("Users:", users)
-    return users
   
   def get_one(self, user_uid: str) -> User:
     user = self.collection.document(user_uid).get()

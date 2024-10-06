@@ -26,17 +26,27 @@ user_service = UserService()
 user_mapper = UserMapper()
 
 @users.route("/")
-@authenticated
 class UserController(MethodView):
-  @users.arguments(CreateUserRequest)
-  @users.response(status_code=201, schema=UserResponse)
-  @users.response(status_code=422)
-  def post(self, user: dict):
-    try:
-      return user_mapper.to_dict(user_service.create_user(user_mapper.to_user(user)))
-    except ValueError as e:
-      return {"message": str(e)}, 422
-    
+    @users.arguments(CreateUserRequest)
+    @users.response(status_code=201, schema=UserResponse)
+    @users.response(status_code=422)
+    def post(self, user: dict):
+        try:
+            return user_mapper.to_dict(user_service.create_user(user_mapper.to_user(user)))
+        except ValueError as e:
+            return {"message": str(e)}, 422
+
+    @users.doc(description="Retrieve the current user's data")
+    @users.response(status_code=200, schema=UserResponse)
+    @authenticated
+    def get(self):
+        user_id = g.user_uid
+        try:
+            user_dict = [user_mapper.to_dict(user_service.get_one(user_id))]
+            return jsonify(user_dict), 200
+        except ValueError as e:
+            return {"message": str(e)}, 422
+        
 
 # # # Subscriptions # # #
 subscriptions = Blueprint("subscriptions", "subscriptions", url_prefix="/subscriptions", description="Subscriptions routes")
@@ -135,8 +145,8 @@ def logout_user():
 
 
 isAuthenticated = Blueprint("isAuthenticated", "isAuthenticated", url_prefix="/isAuthenticated", description="isAuthenticated routes")
-@cross_origin(supports_credentials=True)
-@isAuthenticated.route("/", methods=["GET"])
+@isAuthenticated.route("/", methods=["GET", "POST"])
+@cross_origin()
 @authenticated
 def is_Authenticated():
     return {"message": "User is authenticated"}, 200
