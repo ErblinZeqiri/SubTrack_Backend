@@ -1,4 +1,4 @@
-from flask import request, jsonify, g
+from flask import request, jsonify, g, make_response
 from functools import wraps
 
 from .jwt import decode_token
@@ -28,3 +28,18 @@ def authenticated(func):
     return func(*args, **kwargs)
   
   return token_verification
+
+def handle_cors_options(func):
+  def decorator(*args, **kwargs):
+    print("Request Method:", request.method)
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "http://localhost:4200")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        response.headers.add('Access-Control-Allow-Credentials', "true")
+        return response
+      
+    
+    return func(*args, **kwargs)
+  return decorator

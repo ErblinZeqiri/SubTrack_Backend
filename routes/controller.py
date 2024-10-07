@@ -2,7 +2,7 @@ import os
 import sys
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from flask import g, jsonify
+from flask import g, jsonify, make_response
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -16,7 +16,7 @@ from .service import UserService, SubscriptionService
 from .mapper import UserMapper, SubscriptionMapper
 
 from utils.jwt import create_token
-from utils.decorators import authenticated
+from utils.decorators import authenticated, handle_cors_options
 from flask_cors import cross_origin
 
 
@@ -39,6 +39,7 @@ class UserController(MethodView):
     @users.doc(description="Retrieve the current user's data")
     @users.response(status_code=200, schema=UserResponse)
     @authenticated
+    @handle_cors_options
     def get(self):
         user_id = g.user_uid
         try:
@@ -59,6 +60,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=200, description="Return the list of subscriptions for the user")
     @subscriptions.response(status_code=404, description="No subscriptions found")
     @authenticated
+    @handle_cors_options
     def get(self):
         user_id = g.user_uid
         print(user_id)
@@ -74,6 +76,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=201, schema=SubscriptionResponse)
     @subscriptions.response(status_code=422)
     @authenticated
+    @handle_cors_options
     def post(self, subscription: dict):
         try:
             subscription["user_uid"] = g.user_uid
@@ -88,6 +91,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=200, description="Return the subscription")
     @subscriptions.response(status_code=404, description="Subscription not found")
     @authenticated
+    @handle_cors_options
     def get(self, subscription_id: str):
         try:
             subscription = subscription_service.get_one(subscription_id)
@@ -101,6 +105,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=200, description="Subscription updated successfully")
     @subscriptions.response(status_code=404, description="Subscription not found")
     @authenticated
+    @handle_cors_options
     def put(self, subscription_data: dict, subscription_id: str):  # `subscription_id` vient de l'URL, `subscription_data` du corps de la requête
         try:
             # Ajoute l'ID utilisateur et l'ID de la souscription mise à jour
@@ -116,6 +121,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=200, description="Subscription deleted successfully")
     @subscriptions.response(status_code=404, description="Subscription not found")
     @authenticated
+    @handle_cors_options
     def delete(self, subscription_id: str):
         try:
             subscription_service.delete_subscription(subscription_id)
@@ -130,6 +136,7 @@ login = Blueprint("login", "login", url_prefix="/login", description="login rout
 @login.arguments(LoginRequest)
 @login.response(status_code=200, schema=LoginResponse)
 def login_with_email(login_request: LoginRequest):
+    print("LOGIN")
     email = login_request['email']
     password = login_request['password']
     user = user_service.login(email, password)
@@ -140,13 +147,16 @@ def login_with_email(login_request: LoginRequest):
 logout = Blueprint("logout", "logout", url_prefix="/logout", description="logout routes")
 @logout.route("/", methods=["POST"])
 @authenticated
+@handle_cors_options
 def logout_user():
     return {"message": "User logged out"}, 200
 
 
 isAuthenticated = Blueprint("isAuthenticated", "isAuthenticated", url_prefix="/isAuthenticated", description="isAuthenticated routes")
-@isAuthenticated.route("/", methods=["GET", "POST"])
-@cross_origin()
+@isAuthenticated.route("/", methods=["GET", "POST", "OPTIONS"])
+@handle_cors_options
 @authenticated
 def is_Authenticated():
-    return {"message": "User is authenticated"}, 200
+    response = make_response(jsonify({"message": "User is authenticated"}), 200)
+    #response.headers['Access-Control-Allow-Credentials'] = "true"
+    return response

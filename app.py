@@ -16,8 +16,8 @@ class APIConfig:
 
 
 server.config.from_object(APIConfig)
+CORS(server, supports_credentials=True)
 
-CORS(server, origins=["http://localhost:4200"], supports_credentials=True, resources=r'/*')
 
 api = Api(server)
 api.register_blueprint(users)
