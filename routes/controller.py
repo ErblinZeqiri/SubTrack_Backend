@@ -30,6 +30,7 @@ class UserController(MethodView):
     @users.arguments(CreateUserRequest)
     @users.response(status_code=201, schema=UserResponse)
     @users.response(status_code=422)
+    # # POST A NEW USER # #
     def post(self, user: dict):
         try:
             return user_mapper.to_dict(user_service.create_user(user_mapper.to_user(user)))
@@ -38,8 +39,9 @@ class UserController(MethodView):
 
     @users.doc(description="Retrieve the current user's data")
     @users.response(status_code=200, schema=UserResponse)
-    @authenticated
     @handle_cors_options
+    @authenticated
+    # # GET CURRENT USER DATA # #
     def get(self):
         user_id = g.user_uid
         try:
@@ -54,21 +56,21 @@ subscriptions = Blueprint("subscriptions", "subscriptions", url_prefix="/subscri
 subscription_service = SubscriptionService()
 subscription_mapper = SubscriptionMapper()
 
-@subscriptions.route("/")
+@subscriptions.route("/", methods=["GET", "POST", "OPTIONS"])
 class SubscriptionController(MethodView):
     @subscriptions.doc(description="Retrieve a list of subscriptions for the logged-in user")
     @subscriptions.response(status_code=200, description="Return the list of subscriptions for the user")
     @subscriptions.response(status_code=404, description="No subscriptions found")
-    @authenticated
     @handle_cors_options
+    @authenticated
+    # # GET ALL SUBSCRIPTIONS FOR THE LOGGED-IN USER # #
     def get(self):
         user_id = g.user_uid
-        print(user_id)
+        print(f"User ID: {user_id}")
         try:
             subscriptions = subscription_service.get_all(user_id)
-            
             subscriptions_dict = [subscription_mapper.to_dict(sub) for sub in subscriptions]
-            return jsonify(subscriptions_dict), 200
+            return make_response(jsonify(subscriptions_dict), 200)
         except ValueError as e:
             return jsonify({"message": str(e)}), 404
 
@@ -76,7 +78,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=201, schema=SubscriptionResponse)
     @subscriptions.response(status_code=422)
     @authenticated
-    @handle_cors_options
+    # # POST A SUBSCRIPTION FOR THE LOGGED-IN USER # #
     def post(self, subscription: dict):
         try:
             subscription["user_uid"] = g.user_uid
@@ -91,7 +93,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=200, description="Return the subscription")
     @subscriptions.response(status_code=404, description="Subscription not found")
     @authenticated
-    @handle_cors_options
+    # # GET A SUBSCRIPTION BY ID # #
     def get(self, subscription_id: str):
         try:
             subscription = subscription_service.get_one(subscription_id)
@@ -101,16 +103,15 @@ class SubscriptionController(MethodView):
 
     # Méthode PUT pour mettre à jour une souscription par ID
     @subscriptions.doc(description="Update a subscription by ID")
-    @subscriptions.arguments(CreateSubscriptionRequest, location="json")  # Assure que les données sont dans le corps de la requête (JSON)
+    @subscriptions.arguments(CreateSubscriptionRequest, location="json")
     @subscriptions.response(status_code=200, description="Subscription updated successfully")
     @subscriptions.response(status_code=404, description="Subscription not found")
     @authenticated
-    @handle_cors_options
-    def put(self, subscription_data: dict, subscription_id: str):  # `subscription_id` vient de l'URL, `subscription_data` du corps de la requête
+    # # PUT A SUBSCRIPTION BY ID # #
+    def put(self, subscription_data: dict, subscription_id: str): 
         try:
-            # Ajoute l'ID utilisateur et l'ID de la souscription mise à jour
             subscription_data["user_uid"] = g.user_uid
-            subscription_data["id"] = subscription_id  # Associer l'ID de l'URL à la souscription
+            subscription_data["id"] = subscription_id
             subscription_service.update_subscription(subscription_mapper.to_subscription(subscription_data))
             return jsonify({"message": "Subscription updated successfully"}), 200
         except ValueError as e:
@@ -121,7 +122,7 @@ class SubscriptionController(MethodView):
     @subscriptions.response(status_code=200, description="Subscription deleted successfully")
     @subscriptions.response(status_code=404, description="Subscription not found")
     @authenticated
-    @handle_cors_options
+    # # DELETE A SUBSCRIPTION BY ID # #
     def delete(self, subscription_id: str):
         try:
             subscription_service.delete_subscription(subscription_id)
@@ -135,19 +136,20 @@ login = Blueprint("login", "login", url_prefix="/login", description="login rout
 @login.route("/", methods=["POST"])
 @login.arguments(LoginRequest)
 @login.response(status_code=200, schema=LoginResponse)
+# # # LOGIN WITH EMAIL # # #
 def login_with_email(login_request: LoginRequest):
-    print("LOGIN")
     email = login_request['email']
     password = login_request['password']
     user = user_service.login(email, password)
     token = create_token(user.uid)
     return {"token": token}
   
-
+# # # Logout # # #
 logout = Blueprint("logout", "logout", url_prefix="/logout", description="logout routes")
-@logout.route("/", methods=["POST"])
-@authenticated
+@logout.route("/", methods=["POST", "OPTIONS"])
 @handle_cors_options
+@authenticated
+# # # LOGOUT # # #
 def logout_user():
     return {"message": "User logged out"}, 200
 
@@ -156,6 +158,7 @@ isAuthenticated = Blueprint("isAuthenticated", "isAuthenticated", url_prefix="/i
 @isAuthenticated.route("/", methods=["GET", "POST", "OPTIONS"])
 @handle_cors_options
 @authenticated
+# # # CHECK IF USER IS AUTHENTICATED # # #
 def is_Authenticated():
     response = make_response(jsonify({"message": "User is authenticated"}), 200)
     #response.headers['Access-Control-Allow-Credentials'] = "true"

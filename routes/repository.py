@@ -45,9 +45,7 @@ class SubscriptionRepository:
     self.mapper = SubscriptionMapper()
 
   def get_all(self, user_uid: str) -> list[Subscription]:
-      print("User UID:", user_uid)
       subscriptions = self.collection.where("user_uid", "==", user_uid).get()
-      print("Subscriptions:", subscriptions)
       
       valid_subscriptions = []
       for doc in subscriptions:
