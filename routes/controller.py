@@ -75,15 +75,26 @@ class SubscriptionController(MethodView):
 
     @subscriptions.arguments(CreateSubscriptionRequest)
     @subscriptions.response(status_code=201, schema=SubscriptionResponse)
-    @subscriptions.response(status_code=422)
+    @subscriptions.response(status_code=422, description="Invalid subscription data")
+    @handle_cors_options
     @authenticated
     # # POST A SUBSCRIPTION FOR THE LOGGED-IN USER # #
     def post(self, subscription: dict):
         try:
-            print("POST subscription:", {k: v for k, v in subscription.items()})
-            
+            # Ajout de l'ID de l'utilisateur connecté
             subscription["userID"] = g.userID
-            return subscription_mapper.to_dict(subscription_service.create_subscription(subscription_mapper.to_subscription(subscription))), 201
+            
+            # Vérifie si paymentHistory est présent dans le dictionnaire de subscription
+            if 'paymentHistory' in subscription:
+                # Assurez-vous que paymentHistory est une liste de dictionnaires
+                if not isinstance(subscription['paymentHistory'], list):
+                    raise ValueError("paymentHistory must be a list of payment records.")
+            
+            # Crée l'abonnement avec le mapper et la logique existante
+            created_subscription = subscription_service.create_subscription(subscription_mapper.to_subscription(subscription))
+            subscription_dict = subscription_mapper.to_dict(created_subscription)
+            print("Réponse à renvoyer:", subscription_dict)  # Pour voir ce que tu renvoies
+            return subscription_dict, 201
         except ValueError as e:
             return {"message": str(e)}, 422
         
@@ -143,16 +154,6 @@ def login_with_email(login_request: LoginRequest):
     user = user_service.login(email, password)
     token = create_token(user.uid)
     return {"token": token}
-  
-# # # Logout # # #
-logout = Blueprint("logout", "logout", url_prefix="/logout", description="logout routes")
-@logout.route("/", methods=["POST"])
-@handle_cors_options
-@authenticated
-# # # LOGOUT # # #
-def logout_user():
-    return {"message": "User logged out"}, 200
-
 
 isAuthenticated = Blueprint("isAuthenticated", "isAuthenticated", url_prefix="/isAuthenticated", description="isAuthenticated routes")
 @isAuthenticated.route("/", methods=["GET", "POST", "OPTIONS"])

@@ -1,3 +1,4 @@
+import os
 import jwt
 from datetime import datetime, timedelta
 
@@ -18,8 +19,10 @@ def create_token(userID: str, days=7) -> str:
   payload = {
     "sub": userID,
     "iat": datetime.now().timestamp(),
-    "exp": (datetime.now() + timedelta(days=int(days))).timestamp()
+    "exp": (datetime.now() + timedelta(days=int(days))).timestamp(),
+    "jti": os.urandom(16).hex()
   }
+  print(jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM))
   return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_token(token: str) -> str:

@@ -2,7 +2,7 @@ from flask import Flask
 from flask_smorest import Api
 from flask_cors import CORS
 
-from routes.controller import users, subscriptions, login, logout, isAuthenticated
+from routes.controller import users, subscriptions, login, isAuthenticated
 
 server = Flask(__name__)
 
@@ -23,7 +23,6 @@ api = Api(server)
 api.register_blueprint(users)
 api.register_blueprint(subscriptions)
 api.register_blueprint(login)
-api.register_blueprint(logout)
 api.register_blueprint(isAuthenticated)
 
 if __name__ == "__main__":

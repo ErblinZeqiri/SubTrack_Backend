@@ -1,6 +1,6 @@
 from firebase_admin.firestore import DocumentReference, DocumentSnapshot
 
-from .models import User, Subscription
+from .models import User, Subscription, Payment
 
 
 # # # User Mapper # # #
@@ -45,55 +45,75 @@ class UserMapper:
 # # # Subscription Mapper # # #
 class SubscriptionMapper:
   def to_subscription(self, subscription: dict | DocumentSnapshot | DocumentReference) -> Subscription:
-    subscription_dict = {}
-    if isinstance(subscription, DocumentReference):
-      subscription_dict.update({"id" : subscription.id})
-      subscription = subscription.get().to_dict()      
-    elif isinstance(subscription, DocumentSnapshot):
-      subscription_dict.update({"id" : subscription.id})
-      subscription = subscription.to_dict()
+      subscription_dict = {}
+      if isinstance(subscription, DocumentReference):
+          subscription_dict.update({"id": subscription.id})
+          subscription = subscription.get().to_dict()
+      elif isinstance(subscription, DocumentSnapshot):
+          subscription_dict.update({"id": subscription.id})
+          subscription = subscription.to_dict()
 
-    subscription_dict.update(subscription)
+      subscription_dict.update(subscription)
 
-    return Subscription(
-      subscription_dict.get("id", ""),
-      subscription_dict.get("companyName", ""),
-      subscription_dict.get("nextPaymentDate", ""),
-      subscription_dict.get("amount", 0),
-      subscription_dict.get("category", ""),
-      subscription_dict.get("renewal", ""),
-      subscription_dict.get("paymentHistory", []),
-      subscription_dict.get("deadline", ""),
-      subscription_dict.get("domain", ""),
-      subscription_dict.get("logo", ""),
-      subscription_dict.get("userID", "") 
-    )
+      payment_history_data = subscription_dict.get("paymentHistory", [])
+      payment_history = [
+          Payment(payment.get("date", ""), payment.get("amount", 0))
+          for payment in payment_history_data
+      ]
+
+      return Subscription(
+          subscription_dict.get("id", ""),
+          subscription_dict.get("companyName", ""),
+          subscription_dict.get("nextPaymentDate", ""),
+          subscription_dict.get("amount", 0),
+          subscription_dict.get("category", ""),
+          subscription_dict.get("renewal", ""),
+          payment_history,
+          subscription_dict.get("deadline", ""),
+          subscription_dict.get("domain", ""),
+          subscription_dict.get("logo", ""),
+          subscription_dict.get("userID", "")
+      )
 
   def to_dict(self, subscription: Subscription) -> dict:
-    return {
-      u"id": subscription.id,
-      u"companyName": subscription.companyName,
-      u"nextPaymentDate": subscription.nextPaymentDate,
-      u"amount": subscription.amount,
-      u"category": subscription.category,
-      u"renewal": subscription.renewal,
-      u"paymentHistory": subscription.paymentHistory,
-      u"deadline": subscription.deadline,
-      u"domain": subscription.domain,
-      u"logo": subscription.logo,
-      u"userID": subscription.userID
-    }
+      return {
+          u"id": subscription.id,
+          u"companyName": subscription.companyName,
+          u"nextPaymentDate": subscription.nextPaymentDate,
+          u"amount": subscription.amount,
+          u"category": subscription.category,
+          u"renewal": subscription.renewal,
+          u"paymentHistory": [payment.to_dict() for payment in subscription.paymentHistory],
+          u"deadline": subscription.deadline,
+          u"domain": subscription.domain,
+          u"logo": subscription.logo,
+          u"userID": subscription.userID
+      }
+
 
   def to_firestore_dict(self, subscription: Subscription) -> dict:
+    print("Appel de to_firestore_dict")
+    payment_history = [payment.to_dict() for payment in subscription.paymentHistory]
+    if not payment_history:
+        payment_history = []
+    print("payment_history =", payment_history)
     return {
-      u"companyName": subscription.companyName,
-      u"nextPaymentDate": subscription.nextPaymentDate,
-      u"amount": subscription.amount,
-      u"category": subscription.category,
-      u"renewal": subscription.renewal,
-      u"paymentHistory": subscription.paymentHistory,
-      u"deadline": subscription.deadline,
-      u"domain": subscription.domain,
-      u"logo": subscription.logo,
-      u"userID": subscription.userID
+        u"companyName": subscription.companyName,
+        u"nextPaymentDate": subscription.nextPaymentDate,
+        u"amount": subscription.amount,
+        u"category": subscription.category,
+        u"renewal": subscription.renewal,
+        u"paymentHistory": [payment.to_dict() for payment in subscription.paymentHistory],
+        u"deadline": subscription.deadline,
+        u"domain": subscription.domain,
+        u"logo": subscription.logo,
+        u"userID": subscription.userID
     }
+    
+class Payment:
+  def __init__(self, date, amount):
+      self.date = date
+      self.amount = amount
+
+  def to_dict(self):
+      return {"date": self.date, "amount": self.amount}

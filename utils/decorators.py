@@ -18,7 +18,7 @@ def authenticated(func):
     try:
       g.userID = decode_token(token)
     except Exception as e:
-      return jsonify({"error", str(e)}), 401
+      return jsonify({"error": str(e)}), 401  
     return func(*args, **kwargs)
   return token_verification
 

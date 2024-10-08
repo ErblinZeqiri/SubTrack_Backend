@@ -25,3 +25,8 @@ class CreateSubscriptionRequest(Schema):
   deadline = fields.String(required=True)
   domain = fields.String(required=True)
   logo = fields.String(required=True)
+
+# # # Payment Request # # #
+class PaymentSchema(Schema):
+    amount = fields.Integer()
+    date = fields.String() 

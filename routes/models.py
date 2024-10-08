@@ -1,4 +1,6 @@
 from datetime import datetime
+
+
 class User:
   def __init__(self, 
     uid: str = "", 
@@ -20,6 +22,19 @@ class User:
   def __str__(self) -> str:
     return self.__repr__
   
+
+class Payment:
+    def __init__(self, amount, date):
+        self.amount = amount
+        self.date = date
+    
+    def to_dict(self):
+        return {
+            'amount': self.amount,
+            'date': self.date,
+        }
+
+
 class Subscription:
   def __init__(self, 
     id: str = "", 
@@ -28,7 +43,7 @@ class Subscription:
     amount:int = 0,
     category:str = "",
     renewal:str = "",
-    paymentHistory = [],
+    paymentHistory = list[Payment],
     deadline:datetime = None,
     domain:str = "",
     logo:str = "",
@@ -52,4 +67,4 @@ class Subscription:
 
   def __str__(self) -> str:
     return self.__repr__
-    
+  
