@@ -17,11 +17,11 @@ class UserRepository:
     self.collection = db.collection(u"users")
     self.mapper = UserMapper()
   
-  def get_one(self, user_uid: str) -> User:
-    user = self.collection.document(user_uid).get()
+  def get_one(self, userID: str) -> User:
+    user = self.collection.document(userID).get()
 
     if not user.exists:
-      raise ValueError(f"user with uid {user_uid} doesn't exists")
+      raise ValueError(f"user with uid {userID} doesn't exists")
     
     return self.mapper.to_user(user)
   
@@ -44,13 +44,13 @@ class SubscriptionRepository:
     self.collection = db.collection(u"subscriptions")
     self.mapper = SubscriptionMapper()
 
-  def get_all(self, user_uid: str) -> list[Subscription]:
-      subscriptions = self.collection.where("user_uid", "==", user_uid).get()
+  def get_all(self, userID: str) -> list[Subscription]:
+      subscriptions = self.collection.where("userID", "==", userID).get()
       
       valid_subscriptions = []
       for doc in subscriptions:
           subscription_data = doc.to_dict()
-          if "user_uid" not in subscription_data or not isinstance(subscription_data["user_uid"], str):
+          if "userID" not in subscription_data or not isinstance(subscription_data["userID"], str):
               continue  # Ignorer les abonnements invalides ou mal formés
           valid_subscriptions.append(self.mapper.to_subscription(subscription_data))
       
@@ -67,9 +67,9 @@ class SubscriptionRepository:
   def create_subscription(self, subscription: Subscription) -> Subscription:
     _, subscription_ref = self.collection.add(self.mapper.to_firestore_dict(subscription))
     subscription.id = subscription_ref.id
-    # if subscription.user_uid == '':
-    #   subscription.user_uid = g.user_uid
-    #   subscription_ref.update({'user_uid': subscription.user_uid})
+    # if subscription.userID == '':
+    #   subscription.userID = g.userID
+    #   subscription_ref.update({'userID': subscription.userID})
     return subscription
 
   def update_subscription(self, subscription: Subscription) -> Subscription:

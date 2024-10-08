@@ -11,8 +11,8 @@ class UserService:
     self.repository = UserRepository()
     self.mapper = UserMapper()
       
-  def get_one(self, user_uid: str) -> User:
-    return self.repository.get_one(user_uid)
+  def get_one(self, userID: str) -> User:
+    return self.repository.get_one(userID)
   
   def create_user(self, user: User) -> User:
     user_with_email: list[User] = self.repository.get_user_by_email(user.email)
@@ -43,10 +43,10 @@ class SubscriptionService:
     self.repository = SubscriptionRepository()
     self.mapper = SubscriptionMapper()
 
-  def get_all(self, user_uid: str) -> list[Subscription]:
-      subscriptions = self.repository.get_all(user_uid)
+  def get_all(self, userID: str) -> list[Subscription]:
+      subscriptions = self.repository.get_all(userID)
       if not subscriptions:
-          raise ValueError(f"No subscriptions found for user with ID {user_uid}")
+          raise ValueError(f"No subscriptions found for user with ID {userID}")
       return subscriptions
 
   def get_one(self, subscription_id: str) -> Subscription:

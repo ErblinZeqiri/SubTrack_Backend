@@ -21,7 +21,7 @@ class CreateSubscriptionRequest(Schema):
   category = fields.String(required=True)
   renewal = fields.String(required=True)
   nextPaymentDate = fields.String(required=True)
-  paymentHistory = fields.Dict()
+  paymentHistory = fields.List(fields.Dict(), required=False)  
   deadline = fields.String(required=True)
   domain = fields.String(required=True)
   logo = fields.String(required=True)
