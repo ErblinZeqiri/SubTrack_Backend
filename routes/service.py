@@ -60,3 +60,6 @@ class SubscriptionService:
 
   def delete_subscription(self, subscription_id: str) -> None:
     self.repository.delete_subscription(subscription_id)
+
+  def get_filtered_subscriptions(self, userID: str, category: str, renewal: str) -> list[Subscription]:
+    return self.repository.get_filtered_subscriptions(userID, category, renewal)

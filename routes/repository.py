@@ -31,7 +31,6 @@ class UserRepository:
     user_dict = self.mapper.to_dict(user)
     user_dict['uid'] = user_snapshot.id
     user_ref.update(user_dict)
-    print("User Dict:", user_dict)
     return self.mapper.to_user(user_dict)
 
   def get_user_by_email(self, email: str) -> list[User]:
@@ -67,6 +66,7 @@ class SubscriptionRepository:
   def create_subscription(self, subscription: Subscription) -> Subscription:
     _, subscription_ref = self.collection.add(self.mapper.to_firestore_dict(subscription))
     subscription.id = subscription_ref.id
+    subscription_ref.update({'id': subscription.id})
     # if subscription.userID == '':
     #   subscription.userID = g.userID
     #   subscription_ref.update({'userID': subscription.userID})
@@ -78,3 +78,20 @@ class SubscriptionRepository:
   
   def delete_subscription(self, subscription_id: str) -> None:
     self.collection.document(subscription_id).delete()
+
+  def get_filtered_subscriptions(self, userID: str, category: str, renewal: str) -> list[Subscription]:
+
+    query = self.collection.where("userID", "==", userID)
+
+    if category != 'Tout':
+        query = query.where("category", "==", category)
+    if renewal != 'Tout':
+        query = query.where("renewal", "==", renewal)
+
+    documents = query.get()
+    subscriptions = []
+    for doc in documents:
+        subscription_data = doc.to_dict()
+        subscriptions.append(subscription_data)
+
+    return subscriptions

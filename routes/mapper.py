@@ -96,8 +96,8 @@ class SubscriptionMapper:
     payment_history = [payment.to_dict() for payment in subscription.paymentHistory]
     if not payment_history:
         payment_history = []
-    print("payment_history =", payment_history)
     return {
+        u"id": subscription.id, 
         u"companyName": subscription.companyName,
         u"nextPaymentDate": subscription.nextPaymentDate,
         u"amount": subscription.amount,

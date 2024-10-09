@@ -2,7 +2,7 @@ import os
 import sys
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from flask import g, jsonify, make_response
+from flask import g, jsonify, make_response, request
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -93,17 +93,17 @@ class SubscriptionController(MethodView):
             # Crée l'abonnement avec le mapper et la logique existante
             created_subscription = subscription_service.create_subscription(subscription_mapper.to_subscription(subscription))
             subscription_dict = subscription_mapper.to_dict(created_subscription)
-            print("Réponse à renvoyer:", subscription_dict)  # Pour voir ce que tu renvoies
             return subscription_dict, 201
         except ValueError as e:
             return {"message": str(e)}, 422
-        
+
 @subscriptions.route("/<subscription_id>", methods=["GET", "PUT", "DELETE"])
 class SubscriptionController(MethodView):
     # Méthode GET pour récupérer une souscription par ID
     @subscriptions.doc(description="Retrieve a subscription by ID")
     @subscriptions.response(status_code=200, description="Return the subscription")
     @subscriptions.response(status_code=404, description="Subscription not found")
+    @handle_cors_options
     @authenticated
     # # GET A SUBSCRIPTION BY ID # #
     def get(self, subscription_id: str):
@@ -117,6 +117,7 @@ class SubscriptionController(MethodView):
     @subscriptions.arguments(CreateSubscriptionRequest, location="json")
     @subscriptions.response(status_code=200, description="Subscription updated successfully")
     @subscriptions.response(status_code=404, description="Subscription not found")
+    @handle_cors_options
     @authenticated
     # # PUT A SUBSCRIPTION BY ID # #
     def put(self, subscription_data: dict, subscription_id: str): 
@@ -132,6 +133,7 @@ class SubscriptionController(MethodView):
     @subscriptions.doc(description="Delete a subscription by ID")
     @subscriptions.response(status_code=200, description="Subscription deleted successfully")
     @subscriptions.response(status_code=404, description="Subscription not found")
+    @handle_cors_options
     @authenticated
     # # DELETE A SUBSCRIPTION BY ID # #
     def delete(self, subscription_id: str):
@@ -140,6 +142,27 @@ class SubscriptionController(MethodView):
             return jsonify({"message": "Subscription deleted successfully"}), 200
         except ValueError as e:
             return jsonify({"message": str(e)}), 404
+    
+    @subscriptions.route('/filter', methods=['GET'])
+    @subscriptions.doc(description="Retrieve a list of subscriptions filtered by category and renewal")
+    @subscriptions.response(status_code=200, description="Return the list of subscriptions for the user")
+    @subscriptions.response(status_code=404, description="No subscriptions found")
+    @handle_cors_options
+    @authenticated
+    # # GET ALL SUBSCRIPTIONS FOR THE LOGGED-IN USER # #
+    def get_filtered_subscriptions():
+        user_id = g.userID
+        category = request.args.get('category')
+        renewal = request.args.get('renewal')
+        try:
+            subscriptions = subscription_service.get_filtered_subscriptions(user_id, category, renewal)
+            
+            if not subscriptions:
+                raise ValueError("No subscriptions found")
+            
+            return jsonify(subscriptions), 200
+        except ValueError as e:
+            return jsonify({"message": f"Erreur de filtre : {str(e)}", "user_id": user_id, "category": category, "renewal": renewal}), 404
 
 
 # # # Login # # #
